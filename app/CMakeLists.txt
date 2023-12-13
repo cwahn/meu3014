@@ -6,10 +6,19 @@ target_link_libraries(include_test
     pigpio
 )
 
-add_executable(encoder_test encoder_test.cpp)
-target_link_libraries(encoder_test 
+add_executable(encoder_dev encoder_dev.cpp)
+target_link_libraries(encoder_dev 
     PRIVATE
     efp
     efp_logger 
     pigpio
+)
+
+add_executable(motor_dev motor_dev.cpp)
+target_link_libraries(motor_dev 
+    PRIVATE
+    efp
+    efp_logger 
+    pigpio
+    meu3014_hal
 )

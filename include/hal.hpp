@@ -8,15 +8,20 @@
 #include "logger.hpp"
 #include "pigpio.h"
 
-#define ENCODER_A_GPIO 23;
-#define ENCODER_B_GPIO 24;
+#define ENCODER_A_GPIO 23
+#define ENCODER_B_GPIO 24
 
 void isr_encoder_a(int gpio, int level, uint32_t tick);
 void isr_encoder_b(int gpio, int level, uint32_t tick);
 
 class Encoder{
 public: 
-    static Encoder & instance();
+    static Encoder &instance()
+    {
+        static Encoder inst;
+        return inst;
+    }
+
     void isr_a();
     void isr_b();
     int operator()();
@@ -26,6 +31,23 @@ public:
 
     std::mutex mtx_;
     int enc_pos_;
+};
+
+class DcMotor
+{
+public:
+    ~DcMotor()
+
+    static DcMotor &instance()
+    {
+        static DcMotor motor{};
+        return motor;
+    }
+
+    void operator()(double cmd_v)
+
+private:
+    DcMotor()
 };
 
 #endif

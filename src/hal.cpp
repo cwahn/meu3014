@@ -3,13 +3,7 @@
 using namespace efp;
 using namespace std::chrono;
 
-static Encoder & instance()
-{
-    static Encoder inst;
-    return inst;
-}
-
-void isr_a()
+void Encoder::isr_a()
 {
     const int enc_a = gpioRead(ENCODER_A_GPIO);
     const int enc_b = gpioRead(ENCODER_B_GPIO);
@@ -27,7 +21,7 @@ void isr_a()
 void Encoder::isr_b()
 {
     const int enc_a = gpioRead(ENCODER_A_GPIO);
-    const int enc_b = gpioRead(encoder_b_gpio);
+    const int enc_b = gpioRead(ENCODER_B_GPIO);
 
     std::lock_guard<std::mutex> lock(mtx_);
 
@@ -48,13 +42,13 @@ int Encoder::operator()()
     Encoder::Encoder()
 {   
     gpioSetMode(ENCODER_A_GPIO, PI_INPUT);
-    gpioSetMode(encoder_b_gpio, PI_INPUT);
+    gpioSetMode(ENCODER_B_GPIO, PI_INPUT);
 
     gpioSetPullUpDown(ENCODER_A_GPIO, PI_PUD_UP);
-    gpioSetPullUpDown(encoder_b_gpio, PI_PUD_UP);
+    gpioSetPullUpDown(ENCODER_B_GPIO, PI_PUD_UP);
 
     gpioSetISRFunc(ENCODER_A_GPIO, EITHER_EDGE, 0, isr_encoder_a);
-    gpioSetISRFunc(encoder_b_gpio, EITHER_EDGE, 0, isr_encoder_b);
+    gpioSetISRFunc(ENCODER_B_GPIO, EITHER_EDGE, 0, isr_encoder_b);
 }
 
 void isr_encoder_a(int gpio, int level, uint32_t tick)
