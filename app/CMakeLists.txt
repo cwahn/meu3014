@@ -31,3 +31,12 @@ target_link_libraries(motor_test
     pigpio
     meu3014_hal
 )
+
+add_executable(motor_sine_wave_dev motor_sine_wave_dev.cpp)
+target_link_libraries(motor_sine_wave_dev 
+    PRIVATE
+    efp
+    efp_logger 
+    pigpio
+    meu3014_hal
+)
