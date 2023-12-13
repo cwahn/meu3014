@@ -1,0 +1,7 @@
+#ifndef MEU3014_PIGPIO_ENCODER_HPP_
+#define MEU3014_PIGPIO_ENCODER_HPP_
+
+
+
+
+#endif
