@@ -1,5 +1,5 @@
-#ifndef MEU3014_PIGPIO_ENCODER_HPP_
-#define MEU3014_PIGPIO_ENCODER_HPP_
+#ifndef MEU3014_HAL_HPP_
+#define MEU3014_HAL_HPP_
 
 #include <thread>
 #include <mutex>
@@ -10,6 +10,15 @@
 
 #define ENCODER_A_GPIO 23
 #define ENCODER_B_GPIO 24
+
+#define MOTOR_0_GPIO 17
+#define MOTOR_1_GPIO 27
+
+// now
+
+int now_us();
+
+// Encoder
 
 void isr_encoder_a(int gpio, int level, uint32_t tick);
 void isr_encoder_b(int gpio, int level, uint32_t tick);
@@ -36,7 +45,7 @@ public:
 class DcMotor
 {
 public:
-    ~DcMotor()
+    ~DcMotor();
 
     static DcMotor &instance()
     {
@@ -44,10 +53,10 @@ public:
         return motor;
     }
 
-    void operator()(double cmd_v)
+    void operator()(double cmd_v);
 
 private:
-    DcMotor()
+    DcMotor();
 };
 
 #endif

@@ -17,49 +17,6 @@ using namespace std::chrono;
 constexpr int motor_0_gpio = 17;
 constexpr int motor_1_gpio = 27;
 
-class DcMotor
-{
-public:
-    ~DcMotor()
-    {
-        gpioWrite(motor_0_gpio, 1);
-        gpioWrite(motor_1_gpio, 1);
-    }
-
-    static DcMotor &instance()
-    {
-        static DcMotor motor{};
-        return motor;
-    }
-
-    void operator()(double cmd_v)
-    {
-        const double bound_cmd_v =  bound_v(-3.3, 3.3, cmd_v);
-        const int pwm_cmd = (int)(bound_cmd_v * 255. / 3.3);
-        debug("DC motor PWM command: {}", pwm_cmd);
-
-        gpioPWM(motor_0_gpio, pwm_cmd >= 0 ? pwm_cmd : 0);
-        gpioPWM(motor_1_gpio, pwm_cmd >= 0 ? 0 : -pwm_cmd);
-    }
-
-private:
-    DcMotor()
-    {
-        gpioSetMode(motor_0_gpio, PI_OUTPUT);
-        gpioSetMode(motor_1_gpio, PI_OUTPUT);
-        gpioWrite(motor_0_gpio, 1);
-        gpioWrite(motor_1_gpio, 1);
-    }
-};
-
-// HAL input
-
-int now_us()
-{
-    static auto init_ = steady_clock::now();
-    return duration_cast<microseconds>(steady_clock::now() - init_).count();
-}
-
 void signal_handler(int signum) {
     info("Signal {} received in main thread", signum);
 
@@ -105,11 +62,7 @@ int main()
     {
         const double voltage_cmd = now_us()/1000000 * 0.1;
         motor(voltage_cmd);
-
         info("Voltage command: {} V", voltage_cmd);
-
-        // gpioWrite(motor_0_gpio, 1);
-        // gpioWrite(motor_1_gpio, 0);
 
         std::this_thread::sleep_for(milliseconds(1000));
     }

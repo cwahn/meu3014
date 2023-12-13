@@ -22,3 +22,12 @@ target_link_libraries(motor_dev
     pigpio
     meu3014_hal
 )
+
+add_executable(motor_test motor_test.cpp)
+target_link_libraries(motor_test 
+    PRIVATE
+    efp
+    efp_logger 
+    pigpio
+    meu3014_hal
+)

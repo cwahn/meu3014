@@ -1,7 +1,13 @@
-#include "../include/encoder.hpp"
+#include "../include/hal.hpp"
 
 using namespace efp;
 using namespace std::chrono;
+
+int now_us()
+{
+    static auto init_ = steady_clock::now();
+    return duration_cast<microseconds>(steady_clock::now() - init_).count();
+}
 
 void Encoder::isr_a()
 {
@@ -39,7 +45,7 @@ int Encoder::operator()()
     return enc_pos_;
 }
 
-    Encoder::Encoder()
+Encoder::Encoder()
 {   
     gpioSetMode(ENCODER_A_GPIO, PI_INPUT);
     gpioSetMode(ENCODER_B_GPIO, PI_INPUT);
@@ -59,4 +65,31 @@ void isr_encoder_a(int gpio, int level, uint32_t tick)
 void isr_encoder_b(int gpio, int level, uint32_t tick)
 {
     Encoder::instance().isr_b();
+}
+
+// DcMotor
+
+DcMotor::~DcMotor()
+{
+    gpioWrite(MOTOR_0_GPIO, 1);
+    gpioWrite(MOTOR_1_GPIO, 1);
+}
+
+void DcMotor::operator()(double cmd_v)
+{
+    const double bound_cmd_v =  bound_v(-3.3, 3.3, cmd_v);
+    const int pwm_cmd = (int)(bound_cmd_v * 255. / 3.3);
+    debug("DC motor PWM command: {}", pwm_cmd);
+
+    gpioPWM(MOTOR_0_GPIO, pwm_cmd >= 0 ? pwm_cmd : 0);
+    gpioPWM(MOTOR_1_GPIO, pwm_cmd >= 0 ? 0 : -pwm_cmd);
+}
+
+
+DcMotor::DcMotor()
+{
+    gpioSetMode(MOTOR_0_GPIO, PI_OUTPUT);
+    gpioSetMode(MOTOR_1_GPIO, PI_OUTPUT);
+    gpioWrite(MOTOR_0_GPIO, 1);
+    gpioWrite(MOTOR_1_GPIO, 1);
 }
