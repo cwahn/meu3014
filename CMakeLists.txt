@@ -29,16 +29,13 @@ if(NOT efp_logger_FOUND)
     FetchContent_MakeAvailable(efp_logger)
 endif()
 
-find_library(pigpio_lib pigpio)
-
-add_executable(2nd main.cpp)
-target_link_libraries(2nd 
-PRIVATE
-efp
-efp_logger 
-# pigpio_lib
-)
+# find_library(pigpio_lib pigpio)
+# if(NOT pigpio_lib)
+#   message(FATAL_ERROR "pigpio library not found")
+# endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+add_subdirectory(app)
