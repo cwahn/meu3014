@@ -8,6 +8,8 @@
 #include "logger.hpp"
 #include "pigpio.h"
 
+#include "../include/encoder.hpp"
+
 using namespace efp;
 using namespace std::chrono;
 
@@ -28,55 +30,6 @@ void signal_handler(int signum) {
     info("Terminating program.");
     exit(signum);
 }
-
-void isr_encoder_a(int gpio, int level, uint32_t tick)
-{
-    trace("ISR for encoder a called.");
-    const int a_level = gpioRead(encoder_a_gpio);
-    const int b_level = gpioRead(encoder_b_gpio);
-
-    if (a_level == PI_HIGH)
-	{
-		if (b_level == PI_LOW)
-			encoder_pulse_count++; 
-		else
-			encoder_pulse_count--;
-	}
-	else
-	{
-		if (b_level == PI_LOW)
-			encoder_pulse_count--;
-		else
-			encoder_pulse_count++;
-	}
-
-    info("Encoder pulse count: {}", encoder_pulse_count);
-}
-
-void isr_encoder_b(int gpio, int level, uint32_t tick)
-{
-    trace("ISR for encoder b called.");
-    const int a_level = gpioRead(encoder_a_gpio);
-    const int b_level = gpioRead(encoder_b_gpio);
-
-    if (b_level == PI_HIGH)
-	{
-		if (a_level == PI_LOW)
-			encoder_pulse_count--; 
-		else
-			encoder_pulse_count++;
-	}
-	else
-	{
-		if (a_level == PI_LOW)
-			encoder_pulse_count++;
-		else
-			encoder_pulse_count--;
-	}
-
-    info("Encoder pulse count: {}", encoder_pulse_count);
-}
-
 
 int main()
 {
