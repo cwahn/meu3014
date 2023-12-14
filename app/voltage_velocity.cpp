@@ -17,7 +17,7 @@ using namespace std::chrono;
 // What has to be done in sweeping voltage to get velocity data
 // 0 ~ 3.3 and 3.3 ~ 0
 // rise time is assumed to be < 10 ms -> each voltage data will be collected for 10 times of it i.e. 100ms
-constexpr int period_per_voltage_us = 100 * 1000;
+constexpr int period_per_voltage_us = 10 * 1000;
 
 // Step of voltage should be around 0.1 %
 constexpr int cmd_step_num = 1000;
@@ -73,7 +73,7 @@ int main()
 
     const Vector<double> decreasing_cmds_v =
         from_function(cmd_step_num, [](size_t i)
-                      { return i * cmd_rel_step * max_voltage_v; });
+                      { return (1 -  i * cmd_rel_step) * max_voltage_v; });
 
     const auto cmds_v = append(increasing_cmds_v, decreasing_cmds_v);
 
@@ -82,6 +82,7 @@ int main()
     for_each([&](double cmd_v)
              {
                 debug("Collecting data of {} V", cmd_v);
+                 motor(cmd_v);
                  const auto start_pos = encoder();
                  const auto start_time_us = now_us();
 
@@ -90,15 +91,21 @@ int main()
                  }
 
                  const auto end_pos = encoder();
-                 const velocity_pulse_per_s = 1000000 * (end_pos - start_pos) / period_per_voltage_us;
+                 const auto velocity_pulse_per_s = 1000000. * (end_pos - start_pos) / (double)period_per_voltage_us;
                  velocities_pulse_per_s.push_back(velocity_pulse_per_s); },
              cmds_v);
 
-    for_each([&](double cmd_v, double vel_pulse_s)
-             {
-             info("voltage_v: {}, velocity_pulse_per_sec: {}", cmd_v, vel_pulse_s); 
-                std::this_thread::sleep_for(milliseconds(1)); },
-             cmds_v, velocities_pulse_per_s);
+    motor(0);
+
+    // for_each([&](double cmd_v, double vel_pulse_s)
+    //          {
+    //          info("voltage_v: {}, velocity_pulse_per_sec: {}", cmd_v, vel_pulse_s); 
+    //             std::this_thread::sleep_for(milliseconds(1)); },
+    //          cmds_v, velocities_pulse_per_s);
+
+    print_csv("voltage_velocity_voltages_v.csv", cmds_v);
+    print_csv("voltage_velocity_volocities_pulse_per_s.csv", velocities_pulse_per_s);
+    
 
     debug("Terminatig PIGPIO.");
     gpioTerminate();

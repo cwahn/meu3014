@@ -3,6 +3,8 @@
 
 #include <thread>
 #include <mutex>
+#include <fmt/core.h>
+#include <cstdio>
 
 #include "efp.hpp"
 #include "logger.hpp"
@@ -58,5 +60,23 @@ public:
 private:
     DcMotor();
 };
+
+template <typename Sequence>
+void print_csv(const std::string& filename, const Sequence& seq) {
+    std::FILE* file = std::fopen(filename.c_str(), "w");
+
+    if (file) {
+        for (size_t i = 0; i < seq.size(); ++i) {
+            if (i > 0) {
+                fmt::print(file, ",");
+            }
+            fmt::print(file, "{}", seq[i]);
+        }
+        fmt::print(file, "\n");
+        std::fclose(file);
+    } else {
+        fmt::print(stderr, "Failed to open the file: {}\n", filename);
+    }
+}
 
 #endif

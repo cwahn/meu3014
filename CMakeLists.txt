@@ -44,7 +44,7 @@ endif()
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "include/*.hpp")
 add_library(meu3014_hal ${SOURCES} ${HEADERS})
-target_link_libraries(meu3014_hal PRIVATE efp efp_logger)
+target_link_libraries(meu3014_hal PRIVATE efp efp_logger fmt)
 target_include_directories(meu3014_hal PUBLIC include)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
