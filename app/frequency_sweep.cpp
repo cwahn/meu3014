@@ -9,6 +9,8 @@
 #include "logger.hpp"
 #include "pigpio.h"
 
+#include <fmt/core.h>
+
 #include "hal.hpp"
 
 using namespace efp;
@@ -17,7 +19,7 @@ using namespace std::chrono;
 // What has to be done in sweeping voltage to get velocity data
 // 0 ~ 3.3 and 3.3 ~ 0
 // rise time is assumed to be < 10 ms -> each voltage data will be collected for 10 times of it i.e. 100ms
-constexpr int period_per_freq_us = 100 * 1000;
+constexpr int period_per_freq_us = 10 * 1000;
 
 // Step of voltage should be around 0.1 %
 constexpr int cmd_step_num = 1000;
@@ -82,7 +84,10 @@ int main()
         Vector<int> poss_pulse{};
         poss_pulse.reserve(1.5 * period_per_freq_us);
 
+        motor.sine_wave(cmd_hz, 1.5);
+
         const auto start_time_us = now_us();
+        std::this_thread::sleep_for(milliseconds(10));
 
         while (now_us() < start_time_us + period_per_freq_us)
         {
@@ -102,7 +107,9 @@ int main()
     //     std::this_thread::sleep_for(milliseconds(1)); },
     //          cmds_v, velocities_pulse_per_s);
 
-    
+    for_each([&](double cmd_hz, const Vector<int> & poss_pulse)
+        { print_csv(fmt::format("freq_sweep/{}_hz.csv", cmd_hz), poss_pulse); },
+         cmds_hz, posss_pulse);
 
     debug("Terminatig PIGPIO.");
     gpioTerminate();

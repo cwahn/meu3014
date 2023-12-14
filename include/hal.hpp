@@ -16,6 +16,8 @@
 #define MOTOR_0_GPIO 17
 #define MOTOR_1_GPIO 27
 
+#define CARRIER_PERIOD_US 20
+
 // now
 
 int now_us();
@@ -56,6 +58,8 @@ public:
     }
 
     void operator()(double cmd_v);
+
+    void sine_wave(double frequency_hz, double amplitude_v);
 
 private:
     DcMotor();

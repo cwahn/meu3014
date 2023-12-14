@@ -17,10 +17,10 @@ using namespace std::chrono;
 // What has to be done in sweeping voltage to get velocity data
 // 0 ~ 3.3 and 3.3 ~ 0
 // rise time is assumed to be < 10 ms -> each voltage data will be collected for 10 times of it i.e. 100ms
-constexpr int period_per_voltage_us = 10 * 1000;
+constexpr int period_per_voltage_us = 100 * 1000;
 
 // Step of voltage should be around 0.1 %
-constexpr int cmd_step_num = 1000;
+constexpr int cmd_step_num = 500;
 constexpr double cmd_rel_step = 1. / static_cast<double>(cmd_step_num);
 constexpr double max_voltage_v = 3.3;
 
@@ -91,7 +91,7 @@ int main()
                  }
 
                  const auto end_pos = encoder();
-                 const auto velocity_pulse_per_s = 1000000. * (end_pos - start_pos) / (double)period_per_voltage_us;
+                 const double velocity_pulse_per_s = 1000000. / (double)period_per_voltage_us * (double)(end_pos - start_pos);
                  velocities_pulse_per_s.push_back(velocity_pulse_per_s); },
              cmds_v);
 
