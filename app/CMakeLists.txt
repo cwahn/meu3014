@@ -58,3 +58,12 @@ target_link_libraries(periodic_test
     pigpio
     meu3014_hal
 )
+
+add_executable(record_and_play_pid record_and_play_pid.cpp)
+target_link_libraries(record_and_play_pid
+    PRIVATE
+    efp
+    efp_logger
+    pigpio
+    meu3014_hal
+)

@@ -14,8 +14,8 @@
 using namespace efp;
 using namespace std::chrono;
 
-constexpr microseconds play_time = microseconds(5000000); // 5 sec
-constexpr microseconds cycle_time = microseconds(1000); // 1 ms
+constexpr microseconds play_time = microseconds(10000000); 
+constexpr microseconds cycle_time = microseconds(1000); 
 
 template <typename Duration>
 class PIDController {
@@ -23,15 +23,22 @@ public:
     // Cycle time will be converted as seconds
     PIDController(Duration cycle_time, double kp, double ki, double kd)
         : kp_(kp), ki_(ki), kd_(kd), 
-          cycle_time_s_(std::chrono::duration_cast<microseconds>(cycle_time)/1000000.),
+          cycle_time_s_(std::chrono::duration_cast<microseconds>(cycle_time).count()/1000000.),
           integral_(0.0), previous_error_(0.0) {}
 
     double operator()(double error) {
-        integral_ += error * cycle_time_;
-        double derivative = (error - previous_error_) / cycle_time_;
+        integral_ += error * cycle_time_s_;
+        double derivative = (error - previous_error_) / cycle_time_s_;
         previous_error_ = error;
 
-        return kp_ * error + ki_ * integral_ + kd_ * derivative;
+        const double p_term = kp_ * error;
+        const double i_term = ki_ * integral_;
+        const double d_term = kd_ * derivative;
+
+        trace("error: {} i_error: {}, d_error: {}", error, integral_, derivative);
+        trace("p_term: {} i_term: {}, d_term: {}", p_term, i_term, d_term);
+        
+        return p_term + i_term + d_term;
     }
 
     void reset() {
@@ -69,8 +76,11 @@ int main()
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 
+    FILE * log_file = fopen("./record_and_play_pid.log", "w");
+
     // Spawn threads
     Logger::set_log_level(LogLevel::Trace);
+    Logger::set_output(log_file);
 
     info("Starting MEU3014 2nd project.");
 
@@ -92,37 +102,45 @@ int main()
     // Register signal handler for main thread
     signal(SIGINT, signal_handler);
 
-    info("Recording reference position");
     Vector<int> ref_poss{};
     ref_poss.resize(play_time.count() / cycle_time.count());
-
+    
+    info("Recording reference position");
+    motor(0);
     periodic_while(
         cycle_time,
-        [](milliseconds loop_time)
+        [](microseconds loop_time)
         { return loop_time < play_time; },
-        [](milliseconds loop_time)
+        [&](microseconds loop_time)
         { 
             const int idx = loop_time / cycle_time;
             ref_poss[idx] = encoder();
         }
-    )
+    );
 
     // todo correction
 
-    PIDController pid{cycle_time, 1, 0, 0};
+    PIDController<microseconds> pid{cycle_time, 0.1, 0, 0};
 
-    info("Play back ref position")
+    info("Play back ref position");
+
+    const int current_pos = encoder();
+    const int ref_pos_0 = ref_poss[0];
+
+    const auto shifted_ref_poss = map([&](double p)
+    { return p - ref_pos_0 + current_pos; }, ref_poss);
+
     periodic_while(
         cycle_time,
-        [](milliseconds loop_time)
+        [](microseconds loop_time)
         { return loop_time < play_time; },
-        [](milliseconds loop_time)
+        [&](microseconds loop_time)
         { 
-            const int ref_pos = ref_poss[loop_time / cycle_time];
+            const int ref_pos = shifted_ref_poss[loop_time / cycle_time];
             const int error = encoder() - ref_pos;
             motor(pid(error));
         }
-    )
+    );
     
     debug("Terminatig PIGPIO.");
     gpioTerminate();

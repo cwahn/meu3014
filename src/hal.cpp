@@ -79,7 +79,7 @@ void DcMotor::operator()(double cmd_v)
 {
     const double bound_cmd_v =  bound_v(-3.3, 3.3, cmd_v);
     const int pwm_cmd = (int)(bound_cmd_v * 255. / 3.3);
-    debug("DC motor PWM command: {}", pwm_cmd);
+    trace("DC motor PWM command: {}", pwm_cmd);
 
     gpioPWM(MOTOR_0_GPIO, pwm_cmd >= 0 ? pwm_cmd : 0);
     gpioPWM(MOTOR_1_GPIO, pwm_cmd >= 0 ? 0 : -pwm_cmd);
