@@ -4,6 +4,8 @@ project(2nd VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 include(CTest)
 enable_testing()
 
