@@ -153,12 +153,13 @@ int main()
 
         // info("Voltage command: {} V", voltage_cmd);
 
-        motor.sine_wave(500, 1.);
+        // 50 %
+        motor.sine_wave(600, 1.5);
 
         // gpioWrite(motor_0_gpio, 1);
         // gpioWrite(motor_1_gpio, 0);
 
-        std::this_thread::sleep_for(milliseconds(10000));
+        std::this_thread::sleep_for(milliseconds(100));
     }
 
     debug("Terminatig PIGPIO.");

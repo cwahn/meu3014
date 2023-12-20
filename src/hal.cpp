@@ -93,3 +93,45 @@ DcMotor::DcMotor()
     gpioWrite(MOTOR_0_GPIO, 1);
     gpioWrite(MOTOR_1_GPIO, 1);
 }
+
+void DcMotor::sine_wave(double frequency_hz, double amplitude_v)
+{
+    const double period_us = 1000000/frequency_hz;
+    const int carrier_num = period_us / CARRIER_PERIOD_US;
+    const int pulse_num = carrier_num * 2;
+    // pulse_num should be smaller than 10000;
+
+    Vector<gpioPulse_t> pulses;
+    pulses.resize(pulse_num);
+
+    for_index([&](size_t i)
+    { 
+        const double sine = sin(2 * M_PI * i / carrier_num);
+        const double duty_ratio = bound_v(0., 1., amplitude_v / 3.3) * sine;
+
+        if(duty_ratio >=0){
+            pulses[2*i] = gpioPulse_t{1<<MOTOR_0_GPIO, 0, (uint32_t)(duty_ratio * CARRIER_PERIOD_US)}; 
+            pulses[2*i + 1] = gpioPulse_t{0, 1<<MOTOR_0_GPIO, (uint32_t)((1 - duty_ratio) * CARRIER_PERIOD_US)}; 
+        } 
+        else 
+        {
+            pulses[2*i] = gpioPulse_t{1<<MOTOR_1_GPIO, 0, (uint32_t)(-duty_ratio * CARRIER_PERIOD_US)}; 
+            pulses[2*i + 1] = gpioPulse_t{0, 1<<MOTOR_1_GPIO, (uint32_t)(-(1 - duty_ratio) * CARRIER_PERIOD_US)};  
+        }
+    }, 
+    carrier_num);
+
+    gpioWaveClear();
+    gpioWaveAddGeneric(length(pulses), pulses.data());
+    const int wave_id = gpioWaveCreate();
+
+    if(wave_id >= 0)
+    {
+        gpioWaveTxStop();
+        gpioWaveTxSend(wave_id, PI_WAVE_MODE_REPEAT);
+    }
+    else 
+    {
+        warn("PIGPIO wave form generation failed with return {}", wave_id);
+    }
+}
