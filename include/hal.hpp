@@ -24,7 +24,7 @@ int now_us();
 
 // periodic_while
 template <typename Duration, typename F, typename G>
-void periodic_while(Duration period, const F &keep, const G &task)
+void periodic_while(Duration period, const F &cond, const G &task)
 {
     using Clock = std::chrono::steady_clock;
 
@@ -34,19 +34,18 @@ void periodic_while(Duration period, const F &keep, const G &task)
     while (true)
     {
         auto now = Clock::now();
-        const auto elapsed_time = now - start_timepoint;
+        const auto elapsed_time = std::chrono::duration_cast<Duration>(now - start_timepoint);
 
-        if (!keep(elapsed_time))
+        if (!cond(elapsed_time))
             break;
 
         task(elapsed_time);
 
         next_timepoint += period;
 
-        std::this_thread::sleep_until(next_timepoint);
+        std::this_thread::sleep_until(next_timepoint - std::chrono::microseconds(200));
         while (now < next_timepoint)
-        {
-        }
+            now = Clock::now();
     }
 }
 

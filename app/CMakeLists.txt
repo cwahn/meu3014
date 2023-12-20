@@ -49,3 +49,12 @@ target_link_libraries(voltage_velocity
     pigpio
     meu3014_hal
 )
+
+add_executable(periodic_test periodic_test.cpp)
+target_link_libraries(periodic_test
+    PRIVATE
+    efp
+    efp_logger
+    pigpio
+    meu3014_hal
+)

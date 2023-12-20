@@ -61,11 +61,11 @@ int main()
     signal(SIGINT, signal_handler);
 
     periodic_while(
-        seconds(1),
-        [](const auto time)
+        microseconds(500000),
+        [](microseconds time)
         { return time < seconds(10); },
-        [](const auto time)
-        { info("Periodic time check: {}", time); });
+        [](microseconds time)
+        { info("Periodic time check: {} us", time.count()); });
 
     // Clean up
     debug("Terminatig PIGPIO.");
