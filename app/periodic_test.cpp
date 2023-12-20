@@ -49,10 +49,6 @@ int main()
         return -1;
     }
 
-    debug("Setting HALs.");
-    auto &encoder = Encoder::instance();
-    auto &motor = DcMotor::instance();
-
     // Unblocking signals in the main thread
     sigemptyset(&set);
     pthread_sigmask(SIG_SETMASK, &set, NULL);

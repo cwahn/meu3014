@@ -23,6 +23,7 @@
 int now_us();
 
 // periodic_while
+
 template <typename Duration, typename F, typename G>
 void periodic_while(Duration period, const F &cond, const G &task)
 {
