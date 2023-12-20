@@ -10,6 +10,7 @@
 #include "pigpio.h"
 
 #include "hal.hpp"
+#include "common.hpp"
 
 using namespace efp;
 using namespace std::chrono;
@@ -54,6 +55,38 @@ private:
 
     double integral_; // Integral sum
     double previous_error_; // Previous error value for derivative term
+};
+
+template<size_t n>
+class StaticFrictionCompensator
+{
+public:
+    StaticFrictionCompensator(double static_friction_v)
+    : static_friction_v_(static_friction_v)
+    {
+    }
+
+    double operator()(int pos, double cmd_v)
+    {
+        poss_.push_back(pos);
+        if (cmd_v > 0.1 || cmd_v < -0.1)
+        {
+            auto rel_poss = map([&](int p)
+            { return p - poss_[0]; }, poss_);
+
+            if(sum(rel_poss) == 0) // stop
+            {
+                trace("Compensating static friction");
+                return cmd_v > 0 ? cmd_v + static_friction_v_ : cmd_v - static_friction_v_;
+            }
+        }
+
+        return cmd_v;
+    }
+
+private:
+    double static_friction_v_;
+    Vcb<int, n> poss_;
 };
 
 // HAL input
@@ -120,6 +153,7 @@ int main()
 
     // todo correction
 
+    StaticFrictionCompensator<5> sf_comp{0.75};
     PIDController<microseconds> pid{cycle_time, 0.1, 0, 0};
 
     info("Play back ref position");
@@ -130,17 +164,26 @@ int main()
     const auto shifted_ref_poss = map([&](double p)
     { return p - ref_pos_0 + current_pos; }, ref_poss);
 
+    Vector<int> play_back_poss{};
+    play_back_poss.resize(play_time.count() / cycle_time.count());
+
     periodic_while(
         cycle_time,
         [](microseconds loop_time)
         { return loop_time < play_time; },
         [&](microseconds loop_time)
         { 
-            const int ref_pos = shifted_ref_poss[loop_time / cycle_time];
-            const int error = encoder() - ref_pos;
+            const int idx = loop_time / cycle_time;
+            const int ref_pos = shifted_ref_poss[idx];
+            const int pos = encoder();
+            const int error = pos - ref_pos;
+            // motor(sf_comp(pos, pid(error)));
             motor(pid(error));
+            play_back_poss[idx] = encoder();
         }
     );
+
+    info("ITAE: {}", itae(cycle_time, shifted_ref_poss, play_back_poss)/237);
     
     debug("Terminatig PIGPIO.");
     gpioTerminate();
