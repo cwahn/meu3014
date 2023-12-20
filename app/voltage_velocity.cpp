@@ -97,19 +97,16 @@ int main()
 
     motor(0);
 
-    // for_each([&](double cmd_v, double vel_pulse_s)
-    //          {
-    //          info("voltage_v: {}, velocity_pulse_per_sec: {}", cmd_v, vel_pulse_s); 
-    //             std::this_thread::sleep_for(milliseconds(1)); },
-    //          cmds_v, velocities_pulse_per_s);
-
+    info("Writing voltage data to CSV file.");
     print_csv("voltage_velocity_voltages_v.csv", cmds_v);
+
+    info("Writing velocity data to CSV file.");
     print_csv("voltage_velocity_volocities_pulse_per_s.csv", velocities_pulse_per_s);
     
-
     debug("Terminatig PIGPIO.");
     gpioTerminate();
 
-    std::this_thread::sleep_for(milliseconds(1000));
+    info("Good bye");
+    std::this_thread::sleep_for(milliseconds(1000)); 
     return 0;
 }
