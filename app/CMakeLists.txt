@@ -67,3 +67,12 @@ target_link_libraries(record_and_play_pid
     pigpio
     meu3014_hal
 )
+
+add_executable(record_and_play_smc record_and_play_smc.cpp)
+target_link_libraries(record_and_play_smc
+    PRIVATE
+    efp
+    efp_logger
+    pigpio
+    meu3014_hal
+)
